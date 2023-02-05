@@ -4,7 +4,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.List.*;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BookCollectionTest {
     @Test
@@ -18,9 +22,11 @@ public class BookCollectionTest {
         });
 
         List<Book> foundBooks = books.find(isbnToLocate);
-        Assertions.assertFalse(foundBooks::isEmpty);
-        foundBooks.forEach((Book book)->Assertions.assertEquals(isbnToLocate, book.getISBN()));
+//        assertFalse(foundBooks::isEmpty);
+//        foundBooks.forEach((Book book)->assertEquals(isbnToLocate, book.getISBN()));
 
+        assertThat(foundBooks.isEmpty(), is(false));
+        foundBooks.forEach((Book book)->assertThat(isbnToLocate, is(equalTo(book.getISBN()))));
     }
 
     @Test
@@ -47,8 +53,8 @@ public class BookCollectionTest {
         });
 
         List<Book> foundBooks = books.find(titleToLocate);
-        Assertions.assertFalse(foundBooks::isEmpty);
-        foundBooks.forEach((Book book)->Assertions.assertEquals(titleToLocate, book.getTitle()));
+        assertFalse(foundBooks::isEmpty);
+        foundBooks.forEach((Book book)-> assertEquals(titleToLocate, book.getTitle()));
 
     }
 
@@ -66,9 +72,48 @@ public class BookCollectionTest {
 //        Assertions.assertArrayEquals(List.of(books).toArray(),List.of().toArray(new Book[0]));
 //        Assertions.assertEquals(List.of(books).size(),0);
 
+        //Solución facilitada por Marcos
+       List foundBooks = books.find("dddd");
+        assertTrue(foundBooks::isEmpty);
+        assertEquals(foundBooks.size(),0);
+
 
     }
 
+    @Test
+    public void shouldFindCopiesOfABook() {
+        final Book bookToBeFound = new Book("isbnFound","Found title","Found author");
+        BookCollection books = new BookCollection(new Book[]{
+                new Book("isbnFound","Found title","Found author"),
+                new Book("isbnFound","Found title","Found author"),
+                new Book("isbn2", "titulo2", "autor2"),
+                new Book("isbn3", "titulo3", "autor3"),
+        });
+
+        List<Book> foundBooks = books.findCopies(bookToBeFound);
+        assertFalse(foundBooks::isEmpty);
+        foundBooks.forEach((Book book)-> assertEquals(book, bookToBeFound));
+
+    }
+
+    @Test
+    public void shouldGetExceptionWhenUsingFindOrFailWithANonExistentEntry() {
+        final String isbnToLocate = "este texto no existe ni como isbn ni como autor";
+        BookCollection books = new BookCollection(new Book[]{
+                new Book("isbn1", "titulo1", "autor1"),
+                new Book("isbn2", "titulo2", "autor2"),
+                new Book("isbn3", "titulo3", "autor3"),
+        });
+
+//        try {
+//            books.findOrFail(isbnToLocate);
+//            Assertions.fail("expected exception");
+//        } catch (Exception e){
+//            Assertions.assertInstanceOf(BookCollection.ExpectedToFindAtLeastABook.class, e);
+//        }
+
+        assertThrows(BookCollection.ExpectedToFindAtLeastABook.class,()->books.findOrFail(isbnToLocate));
+    }
 }
 
 
